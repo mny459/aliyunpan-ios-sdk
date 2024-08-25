@@ -23,7 +23,7 @@ public protocol AliyunpanDownloadDelegate: AnyObject {
     func downloader(_ downloader: AliyunpanDownloader, didUpdatedNetworkSpeed networkSpeed: Int64)
     
     /// 下载进度发生变化
-    @MainActor
+    /// @MainActor
     func downloader(_ downloader: AliyunpanDownloader, didUpdateTaskState state: AliyunpanDownloadTask.State, for task: AliyunpanDownloadTask)
 }
 
@@ -149,12 +149,7 @@ extension AliyunpanDownloader: AliyunpanDownloadTaskDelegate {
     func downloadTask(_ task: AliyunpanDownloadTask, didUpdateState state: AliyunpanDownloadTask.State) {
         delegates.compactMap { $0.value as? AliyunpanDownloadDelegate }
             .forEach { delegate in
-                DispatchQueue.main.async { [weak self] in
-                    guard let self else {
-                        return
-                    }
-                    delegate.downloader(self, didUpdateTaskState: state, for: task)
-                }
+                delegate.downloader(self, didUpdateTaskState: state, for: task)
             }
     }
     
