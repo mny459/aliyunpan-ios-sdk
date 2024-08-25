@@ -46,7 +46,7 @@ public class AliyunpanDownloader: NSObject {
         name: "com.aliyunpanSDK.downloader.queue",
         maxConcurrentOperationCount: 10)
     
-    private var delegates: [Weak<AnyObject>] = []
+    private var delegates: [AliyunpanDownloadDelegate] = []
     
     /// 网速监听 Timer
     private lazy var networkSpeedTimer: Timer = {
@@ -56,7 +56,7 @@ public class AliyunpanDownloader: NSObject {
             }
             let offset = self.currentWritedSize - self.lastWritedSize
             self.lastWritedSize = self.currentWritedSize
-            self.delegates.compactMap { $0.value as? AliyunpanDownloadDelegate }
+            self.delegates // .compactMap { $0.value as? AliyunpanDownloadDelegate }
                 .forEach { delegate in
                     DispatchQueue.main.async { [weak self] in
                         guard let self else {
@@ -83,9 +83,11 @@ public class AliyunpanDownloader: NSObject {
 public extension AliyunpanDownloader {
     /// 添加代理
     func addDelegate(_ delegate: AliyunpanDownloadDelegate) {
-        delegates = (delegates + [.init(value: delegate)]).filter {
-            $0.value != nil
-        }
+        delegates = delegates + [delegate]
+    }
+    
+    func removeDelegate(_ delegate: AliyunpanDownloadDelegate) {
+        delegates = delegates.filter { $0! = delegate }
     }
     
     /// 开启网速监听
@@ -148,10 +150,7 @@ extension AliyunpanDownloader: AliyunpanDownloadTaskDelegate {
     
     func downloadTask(_ task: AliyunpanDownloadTask, didUpdateState state: AliyunpanDownloadTask.State) {
         Logger.log(.info, msg: "[Downloader] callback \(task.file.name) [state] \(state) [delegates count] \(delegates.count)")
-        delegates.compactMap {
-            Logger.log(.info, msg: "[Downloader] delegate \(Mirror(reflecting: $0.value)) [is AliyunpanDownloadDelegate] \($0.value as? AliyunpanDownloadDelegate)")
-            return $0.value as? AliyunpanDownloadDelegate
-        }.forEach { delegate in
+        delegates.forEach { delegate in
             Logger.log(.info, msg: "[Downloader] delegate \(task.file.name) [state] \(state) [delegates count] \(delegates.count)")
             delegate.downloader(self, didUpdateTaskState: state, for: task)
         }
