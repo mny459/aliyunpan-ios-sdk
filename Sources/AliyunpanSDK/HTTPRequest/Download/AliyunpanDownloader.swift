@@ -149,8 +149,10 @@ extension AliyunpanDownloader: AliyunpanDownloadTaskDelegate {
     func downloadTask(_ task: AliyunpanDownloadTask, didUpdateState state: AliyunpanDownloadTask.State) {
         Logger.log(.info, msg: "[Downloader] callback \(task.file.name) [state] \(state) [delegates count] \(delegates.count)")
         delegates.compactMap {
-            $0.value as? AliyunpanDownloadDelegate
+            Logger.log(.info, msg: "[Downloader] delegate \(type(of: $0.value))")
+            return $0.value as? AliyunpanDownloadDelegate
         }.forEach { delegate in
+            Logger.log(.info, msg: "[Downloader] delegate \(task.file.name) [state] \(state) [delegates count] \(delegates.count)")
             delegate.downloader(self, didUpdateTaskState: state, for: task)
         }
     }
