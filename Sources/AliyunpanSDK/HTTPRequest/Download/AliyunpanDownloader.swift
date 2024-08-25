@@ -86,8 +86,8 @@ public extension AliyunpanDownloader {
         delegates = delegates + [delegate]
     }
     
-    func removeDelegate(_ delegate: AliyunpanDownloadDelegate) {
-        delegates = delegates.filter { $0! = delegate }
+    func clearDelegate() {
+        delegates.removeAll()
     }
     
     /// 开启网速监听
