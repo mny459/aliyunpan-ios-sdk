@@ -80,16 +80,16 @@ public class AliyunpanDownloader: NSObject {
     }
 }
 
-extension AliyunpanDownloader {
+public extension AliyunpanDownloader {
     /// 添加代理
-    public func addDelegate(_ delegate: AliyunpanDownloadDelegate) {
+    func addDelegate(_ delegate: AliyunpanDownloadDelegate) {
         delegates = (delegates + [.init(value: delegate)]).filter {
             $0.value != nil
         }
     }
     
     /// 开启网速监听
-    public func enableNetworkSpeedMonitor() {
+    func enableNetworkSpeedMonitor() {
         networkSpeedTimer.fire()
     }
     
@@ -99,7 +99,7 @@ extension AliyunpanDownloader {
     ///   - destination: 目标目录
     /// - Returns: DownloadTask
     @discardableResult
-    public func download(file: AliyunpanFile, to destination: URL) -> AliyunpanDownloadTask {
+    func download(file: AliyunpanFile, to destination: URL) -> AliyunpanDownloadTask {
         Logger.log(.info, msg: "[Downloader] download \(file.name), to:\(destination)")
 
         let task = AliyunpanDownloadTask(file: file, destination: destination, delegate: self)
@@ -110,21 +110,21 @@ extension AliyunpanDownloader {
 
     /// 暂停下载
     /// - Parameter task: 目标任务
-    public func pause(_ task: AliyunpanDownloadTask) {
+    func pause(_ task: AliyunpanDownloadTask) {
         Logger.log(.info, msg: "[Downloader] pause \(task.file.name)")
         task.pause()
     }
     
     /// 恢复下载
     /// - Parameter task: 目标任务
-    public func resume(_ task: AliyunpanDownloadTask) {
+    func resume(_ task: AliyunpanDownloadTask) {
         Logger.log(.info, msg: "[Downloader] resume \(task.file.name)")
         task.start()
     }
     
     /// 取消下载，会清空已下载内容
     /// - Parameter task: 目标任务
-    public func cancel(_ task: AliyunpanDownloadTask) {
+    func cancel(_ task: AliyunpanDownloadTask) {
         Logger.log(.info, msg: "[Downloader] cancel \(task.file.name)")
         task.cancel()
         tasks.cancel(task)
@@ -147,10 +147,12 @@ extension AliyunpanDownloader: AliyunpanDownloadTaskDelegate {
     }
     
     func downloadTask(_ task: AliyunpanDownloadTask, didUpdateState state: AliyunpanDownloadTask.State) {
-        delegates.compactMap { $0.value as? AliyunpanDownloadDelegate }
-            .forEach { delegate in
-                delegate.downloader(self, didUpdateTaskState: state, for: task)
-            }
+        Logger.log(.info, msg: "[Downloader] callback \(task.file.name) [state] \(state) [delegates count] \(delegates.count)")
+        delegates.compactMap {
+            $0.value as? AliyunpanDownloadDelegate
+        }.forEach { delegate in
+            delegate.downloader(self, didUpdateTaskState: state, for: task)
+        }
     }
     
     func downloadTask(task: AliyunpanDownloadTask, didWriteData bytesWritten: Int64) {
